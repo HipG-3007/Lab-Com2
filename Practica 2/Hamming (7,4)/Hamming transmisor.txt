@@ -1,0 +1,24 @@
+int dato[] = {1,1,0,1};
+int hamtx[7] = {0};
+
+void setup() {
+ Serial.begin(9600);
+}
+
+void hamming() {
+  hamtx[0]=(dato[0]^dato[1])^dato[3];
+  hamtx[1]=(dato[0]^dato[2])^dato[3];  
+  hamtx[2]=dato[0];
+  hamtx[3]=(dato[1]^dato[2])^dato[3];  
+  hamtx[4]=dato[1];  
+  hamtx[5]=dato[2];  
+  hamtx[6]=dato[3];
+}
+void loop() {
+  hamming(); 
+  for (int i = 0; i < 7; i++) {
+    Serial.print(hamtx[i]);
+  	delay(50);
+  }
+  Serial.println();
+}
