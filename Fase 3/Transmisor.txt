@@ -1,0 +1,171 @@
+int t=50;
+
+int estadoCLK = LOW;
+
+long tiempoPasadoClk = 0;
+long duty = t;
+
+
+int dato[] = {0, 0, 0, 0};
+int hamtx[7] = {0};
+
+int i = 0;
+int l = 0;
+
+String texto;
+int bits[256];
+int bitIndex = 0;
+
+const int clk = 2;
+const int tx = 3;
+
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(clk, OUTPUT);
+  pinMode(tx, OUTPUT);
+}
+
+void loop() {
+  leerTexto();
+  //Reloj();
+}
+
+
+void leerTexto() {
+  if (Serial.available() > 0) {
+    texto = Serial.readStringUntil('\n');
+    Serial.print("Texto ingresado: ");
+    Serial.println(texto);
+
+    // Convertir texto a binario y almacenar en el vector
+    int bitIndex = 0;
+    for (int m = 0; m < texto.length(); m++) {
+      int ascii_value = int(texto.charAt(m));
+
+      for (int j = 7; j >= 0; j--) {
+        bits[bitIndex] = (ascii_value & (1 << j)) ? 1 : 0;
+        bitIndex++;
+      }
+    }
+
+    Serial.println("Vector de bits:");
+    for (int i = 0; i < texto.length() * 8; i++) {
+      Serial.print(bits[i]);
+    }
+
+    Serial.println("\n");
+    prueba();
+  }
+}
+
+void prueba() {
+  int fin = texto.length() * 8;
+  int h = fin / 4;
+  int e = 0;
+
+  for (int g = 0; g < h; g++) {    
+
+    dato[0] = bits[1 * e++];
+    dato[1] = bits[1 * e++];
+    dato[2] = bits[1 * e++];
+    dato[3] = bits[1 * e++];
+    Serial.println((String) "dato->" + dato[0] + dato[1] + dato[2] + dato[3]);
+
+    hamtx[0] = (dato[0] ^ dato[1]) ^ dato[3];
+    hamtx[1] = (dato[0] ^ dato[2]) ^ dato[3];
+    hamtx[2] = dato[0];
+    hamtx[3] = (dato[1] ^ dato[2]) ^ dato[3];
+    hamtx[4] = dato[1];
+    hamtx[5] = dato[2];
+    hamtx[6] = dato[3];
+
+    Serial.println((String) "hamming(7,4)\n" + "Bit/P1  " + "Bit/P2  " + "Bit3  " + "Bit/P4  " + "Bit5   " + "Bit6   " + "Bit7");
+    for (int i = 0; i < 7; i++) {
+      Serial.print((String) "   " + hamtx[i] + "   ");
+    }
+    Serial.println("\n");
+
+    Serial.println("fin de Hamming");
+    
+   transmisor(hamtx, sizeof(hamtx) / sizeof(int));
+
+  } 
+ 
+}
+
+
+
+void R(int bits[], int longitud) {
+
+
+
+    for (l=0; l < longitud; l++) {
+ 
+
+        estadoCLK=!estadoCLK;  
+     
+        if (estadoCLK == HIGH) {
+          digitalWrite(tx, bits[l]);
+          Serial.print(bits[l]);
+          digitalWrite(clk, estadoCLK);
+        } 
+        
+        else {
+          digitalWrite(tx, 0);
+          digitalWrite(clk, estadoCLK);
+        }
+
+        
+        
+        if(l>=6){
+          Serial.print(" -> Hamming Enviado \n\n____________________________________________________________\n");
+          estadoCLK = LOW;
+        
+  
+          
+   
+    }
+    
+  }
+}
+
+
+
+
+void transmisor(int bits[], int longitud) {
+while( l< 7) {
+unsigned long tiempoActual = millis();
+  if (tiempoActual - tiempoPasadoClk > duty) {
+    tiempoPasadoClk = tiempoActual;
+    
+     
+      Reloj();
+      if(estadoCLK==HIGH){
+        digitalWrite(tx, bits[l]);
+        Serial.print(bits[l++]);
+      }
+      else{
+        digitalWrite(tx, 0);
+      }
+      
+      if(l>6){
+        Serial.print(" -> Hamming Enviado \n\n____________________________________________________________\n");
+        //l=0;
+    }
+  }
+
+  }
+  l=0;
+}
+
+
+
+
+void Reloj() {
+  
+
+    estadoCLK=!estadoCLK;    
+    digitalWrite(clk, estadoCLK);
+    
+}
